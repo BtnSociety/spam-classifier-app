@@ -1,14 +1,22 @@
 import streamlit as st
-st.title("Spam Classifier App")
-st.write("App is running successfully!")
-
-
+import joblib
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.feature_extraction.text import TfidfVectorizer
+st.title("Spam Classifier App")
+st.write("App is running successfully!")
+
+user_input = st.text_input("Enter a message:")
+if st.button("Classify"):
+    model = joblib.load("spam_model.pkl")
+    vectorizer = joblib.load("vectorizer.pkl")
+    transformed = vectorizer.transform([user_input])
+    prediction = model.predict(transformed)[0]
+    st.success(f"This message is: {'Spam' if prediction == 1 else 'Ham'}")
+
 
 try:
     # 1. Load and clean dataset
