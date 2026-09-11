@@ -98,11 +98,12 @@ try:
     st.metric(label="Accuracy", value=f"{acc * 100:.2f}%")
 
     # Confusion matrix visualization
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Ham", "Spam"], yticklabels=["Ham", "Spam"])
+    fig_confusion, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=["Ham", "Spam"], yticklabels=["Ham", "Spam"])
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
-    st.pyplot(fig)
+    ax.set_title("Confusion Matrix")
 
     option = st.radio(
         "Select visualization:",
@@ -110,7 +111,7 @@ try:
     )
 
     if option == "Confusion Matrix":
-        st.pyplot(fig)
+        st.pyplot(fig_confusion)
     elif option == "Precision-Recall":
         # Assuming you already have y_test and y_pred from your model
         precision, recall, _ = precision_recall_curve(y_test, y_pred)
@@ -125,6 +126,8 @@ try:
         ax.set_title(f'Precision-Recall Curve (AUC = {auc_score:.2f})')
         ax.legend(loc='lower left')
         st.pyplot(fig)
+
+
 
     elif option == "ROC Curve":
         option = st.radio("Select visualization:", ["Confusion Matrix", "Precision-Recall", "ROC Curve"])
@@ -144,6 +147,7 @@ try:
         ax.set_title('Receiver Operating Characteristic (ROC) Curve')
         ax.legend(loc='lower right')
         st.pyplot(fig)
+
 
     spam_tests = [
         "Congratulations! You won a free ticket to Bahamas",
