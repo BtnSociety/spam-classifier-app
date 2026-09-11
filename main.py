@@ -8,8 +8,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import precision_recall_curve, auc
-from sklearn.metrics import roc_curve, auc
+
+# Precision-Recall Curve data
+from sklearn.metrics import precision_recall_curve, roc_curve, auc
+
+
 
 st.title("Spam Classifier App")
 st.write("App is running successfully!")
@@ -85,6 +88,15 @@ try:
     prediction = model.predict(test_vec)
     print("Prediction:", prediction[0])  # 1 = spam, 0 = ham
 
+    # Get predicted probabilities for the positive (spam) class
+    y_pred_proba = model.predict_proba(X_test_vec)[:, 1]
+
+    # Compute precision-recall values
+    precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
+
+    # Compute ROC values
+    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+
     # Show probability scores
     probs = model.predict_proba(test_vec)
     print("Spam probability:", probs[0][1])
@@ -98,20 +110,21 @@ try:
     st.metric(label="Accuracy", value=f"{acc * 100:.2f}%")
 
     # Confusion matrix visualization
-    fig_confusion, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
-                xticklabels=["Ham", "Spam"], yticklabels=["Ham", "Spam"])
+    fig, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Ham", "Spam"], yticklabels=["Ham", "Spam"])
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
-    ax.set_title("Confusion Matrix")
+    st.pyplot(fig)
 
     option = st.radio(
         "Select visualization:",
         ["Confusion Matrix", "Precision-Recall", "ROC Curve"]
     )
 
+
+
     if option == "Confusion Matrix":
-        st.pyplot(fig_confusion)
+        st.pyplot(fig)
     elif option == "Precision-Recall":
         # Assuming you already have y_test and y_pred from your model
         precision, recall, _ = precision_recall_curve(y_test, y_pred)
@@ -126,8 +139,6 @@ try:
         ax.set_title(f'Precision-Recall Curve (AUC = {auc_score:.2f})')
         ax.legend(loc='lower left')
         st.pyplot(fig)
-
-
 
     elif option == "ROC Curve":
         option = st.radio("Select visualization:", ["Confusion Matrix", "Precision-Recall", "ROC Curve"])
@@ -147,6 +158,29 @@ try:
         ax.set_title('Receiver Operating Characteristic (ROC) Curve')
         ax.legend(loc='lower right')
         st.pyplot(fig)
+
+    # Confusion Matrix
+    fig_confusion, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=["Ham", "Spam"], yticklabels=["Ham", "Spam"])
+    ax.set_title("Confusion Matrix")
+
+    # Precision-Recall Curve
+    fig_precision_recall, ax_pr = plt.subplots()
+    ax_pr.plot(recall, precision, color='blue')
+    ax_pr.set_title("Precision-Recall Curve")
+
+    # ROC Curve
+    fig_roc, ax_roc = plt.subplots()
+    ax_roc.plot(fpr, tpr, color='blue')
+    ax_roc.set_title("ROC Curve")
+
+    if option == "Confusion Matrix":
+        st.pyplot(fig_confusion)
+    elif option == "Precision-Recall":
+        st.pyplot(fig_precision_recall)
+    elif option == "ROC Curve":
+        st.pyplot(fig_roc)
 
 
     spam_tests = [
