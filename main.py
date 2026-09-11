@@ -8,6 +8,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import precision_recall_curve, auc
+from sklearn.metrics import roc_curve, auc
+
 st.title("Spam Classifier App")
 st.write("App is running successfully!")
 
@@ -101,6 +104,47 @@ try:
     ax.set_ylabel("Actual")
     st.pyplot(fig)
 
+    option = st.radio(
+        "Select visualization:",
+        ["Confusion Matrix", "Precision-Recall", "ROC Curve"]
+    )
+
+    if option == "Confusion Matrix":
+        st.pyplot(fig)
+    elif option == "Precision-Recall":
+        # Assuming you already have y_test and y_pred from your model
+        precision, recall, _ = precision_recall_curve(y_test, y_pred)
+        auc_score = auc(recall, precision)
+
+        # Plot the curve
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(recall, precision, color='blue', label='Precision-Recall Curve')
+        ax.plot([0, 1], [0.5, 0.5], linestyle='--', color='yellow', label='Baseline (Random Guess)')
+        ax.set_xlabel('Recall')
+        ax.set_ylabel('Precision')
+        ax.set_title(f'Precision-Recall Curve (AUC = {auc_score:.2f})')
+        ax.legend(loc='lower left')
+        st.pyplot(fig)
+
+    elif option == "ROC Curve":
+        option = st.radio("Select visualization:", ["Confusion Matrix", "Precision-Recall", "ROC Curve"])
+        # Get probability scores for the positive (spam) class
+        y_pred_proba = model.predict_proba(X_test_vec)[:, 1]
+
+        # Compute ROC curve and AUC
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+        roc_auc = auc(fpr, tpr)
+
+        # Plot ROC curve
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(fpr, tpr, color='blue', label=f'ROC Curve (AUC = {roc_auc:.2f})')
+        ax.plot([0, 1], [0, 1], linestyle='--', color='yellow', label='Baseline (Random Guess)')
+        ax.set_xlabel('False Positive Rate')
+        ax.set_ylabel('True Positive Rate')
+        ax.set_title('Receiver Operating Characteristic (ROC) Curve')
+        ax.legend(loc='lower right')
+        st.pyplot(fig)
+
     spam_tests = [
         "Congratulations! You won a free ticket to Bahamas",
         "Claim your prize now, text WIN to 12345",
@@ -127,5 +171,10 @@ try:
 except Exception as e:
     st.error(f"Error: {e}")
 
+theme = st.toggle("Dark Mode")
 
+if theme:
+    plt.style.use("dark_background")
+else:
+    plt.style.use("default")
 
